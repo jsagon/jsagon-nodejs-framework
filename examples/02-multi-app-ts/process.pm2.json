@@ -1,0 +1,15 @@
+{
+    "apps": [{
+      "name": "multi-app-main",
+      "script": "./dist/src/server.js",
+      "restart_delay": 500,
+      "merge_logs": true,
+      "log_date_format": "YYYY-MM-DD HH:mm Z",
+      "ignore_watch":["node_modules"],
+      "watch": [
+        "./dist/"
+      ],
+      "interpreter_args": "--harmony"
+    }]
+  }
+  

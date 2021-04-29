@@ -1,0 +1,29 @@
+html {
+    position: relative;
+    min-height: 100%;
+}
+body {
+    color: #616161;
+    margin-bottom: 60px;
+}
+.mt-10 {
+    margin-top: 100px;
+}
+.home-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.home-links {
+    display: flex;
+    flex-direction: inherit;
+    justify-content: center;
+}
+.home-links div {
+    margin: 20px;
+}
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}

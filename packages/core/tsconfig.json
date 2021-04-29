@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+      "target": "es6",
+      "module": "commonjs",
+      "lib": ["es2017", "es7", "es6", "dom"],
+      "removeComments": true,  
+      "declaration": true,
+      "moduleResolution": "node",
+      "outDir": "./dist",
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "typeRoots": [
+        "./node_modules/@types"
+      ],
+      "rootDir": "./src",
+      "resolveJsonModule": true,
+      "skipLibCheck": true,                     
+      "forceConsistentCasingInFileNames": true,
+      "baseUrl": ".",
+      "paths": {} 
+    },
+    "include": [
+      "src/"
+    ],
+    "exclude": ["dist", "node_modules", "**/__tests__/*", "dist"]
+}
