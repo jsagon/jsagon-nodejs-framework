@@ -1,7 +1,7 @@
 {
   "name": "@jsagon/core",
   "version": "1.0.6",
-  "description": "NodeJS Framework - Fast and simple",
+  "description": "JSagon NodeJS Framework - A Fullstack MVC and Restful framework for Node.js on top of TypeScript and JavaScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -14,12 +14,17 @@
     "framework",
     "web",
     "rest",
-    "app"
+    "app",
+    "jsagon"
   ],
   "author": "JSagon - Jhonatan Gonçalves",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jsagon/jsagon-nodejs-framework"
+  },
   "license": "MIT",
   "prepublish": "tsc",
-  "homepage": "http://jsagon.com/",
+  "homepage": "https://jsagon.com/jsagon-nodejs-framework",
   "devDependencies": {
     "@babel/cli": "^7.12.10",
     "@babel/core": "^7.12.10",

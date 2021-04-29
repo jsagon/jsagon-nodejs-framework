@@ -1,7 +1,7 @@
 {
   "name": "@jsagon/view-engine-hbs",
   "version": "0.0.4",
-  "description": "View Engine Handlebars for JSagon Framework",
+  "description": "View Engine Handlebars adapters for JSagon Framework",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -20,7 +20,11 @@
   "author": "JSagon - Jhonatan Gonçalves",
   "license": "MIT",
   "prepublish": "tsc",
-  "homepage": "http://jsagon.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jsagon/jsagon-nodejs-framework"
+  },
+  "homepage": "https://jsagon.com/jsagon-nodejs-framework",
   "devDependencies": {
     "@babel/cli": "^7.12.10",
     "@babel/core": "^7.12.10",
