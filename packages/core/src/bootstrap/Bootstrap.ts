@@ -75,9 +75,13 @@ class Bootstrap {
       return this.application
     }
 
-    public listen (port: number, closure?: () => void) {
+    public initialize (): void {
       this.registerRoutes()
       this.handleError404()
+    }
+
+    public listen (port: number|string, closure?: () => void) {
+      this.initialize()
       return this.application.getApp().listen(port, closure)
     }
 
