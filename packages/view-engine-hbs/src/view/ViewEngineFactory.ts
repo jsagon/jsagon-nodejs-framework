@@ -6,7 +6,7 @@ class ViewEngineFactory {
 
   public static exists (serverEngine) {
     const pathEngine = `./${serverEngine}/ViewEngine`
-    
+
     try {
       require.resolve(pathEngine)
       return pathEngine
