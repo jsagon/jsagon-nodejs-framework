@@ -4,7 +4,7 @@ import exphbs from 'express-handlebars'
 class ViewEngine {
     private viewEngine
 
-    public configureApp (app, viewPath) {
+    public configureApp (app, viewPath): void {
       app.set('views', viewPath)
 
       this.viewEngine = exphbs.create({
@@ -23,7 +23,7 @@ class ViewEngine {
       app.set('view engine', 'hbs')
     }
 
-    public getEngine () {
+    public getEngine (): any {
       return this.viewEngine
     }
 }

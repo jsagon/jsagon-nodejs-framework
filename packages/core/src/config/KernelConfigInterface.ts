@@ -1,6 +1,9 @@
+import { MiddlewareType } from '../route/builder/RouteLib'
+
 export interface IKernelMiddleware {
-    before: Array<any>,
-    after: Array<any>
+    registered: {[key: string]: Function}[],
+    before: MiddlewareType[],
+    after: MiddlewareType[]
 }
 
 export abstract class KernelConfigInterface {

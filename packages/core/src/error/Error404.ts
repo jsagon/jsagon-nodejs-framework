@@ -1,5 +1,7 @@
+import { Request, Response } from '../application/server/Interface/IApplication'
+
 class Error {
-  static async index (req, res) {
+  static async index (req: Request, res: Response): Promise<Response|void> {
     if (res.headersSent) return
 
     res.status(404)

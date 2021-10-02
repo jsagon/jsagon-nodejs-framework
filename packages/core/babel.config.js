@@ -14,7 +14,8 @@ module.exports = {
     ['module-resolver', {
       alias: {
       }
-    }]
+    }],
+    ['@babel/plugin-proposal-decorators', { legacy: true }]
   ],
   ignore: [
     '**/*.spec.ts'

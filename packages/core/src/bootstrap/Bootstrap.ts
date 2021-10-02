@@ -4,18 +4,18 @@ import RouteRegisterFactory from '../route/register/RouteRegisterFactory'
 import RouteRegisterAbstract from '../route/register/abstract/RouteRegisterAbstract'
 import AppConfigInterface, { configDefault } from '../config/AppConfigInterface'
 import ApplicationFactory from '../application/ApplicationFactory'
-import RouteFinder from '../route/register/RouteFinder'
 import { ViewEngineInterface } from '../view/ViewEngineInterface'
 import Error404 from '../error/Error404'
 import ErrorRequest from '../error/ErrorRequest'
+import { ApplicationMap } from '../application/ApplicationMap'
 
 class Bootstrap {
     private application: ServerApplicationAbstract
     private config: AppConfigInterface
     private serverEngine: string
 
+    private applicationMap: ApplicationMap
     private routeRegister: RouteRegisterAbstract
-    private routeFinder: RouteFinder
 
     private errorRequest: ErrorRequest
 
@@ -56,14 +56,16 @@ class Bootstrap {
       this.routeRegister.setGlobalMiddlewares(this.config.httpKernel.globalMiddlewares)
       this.routeRegister.setAppPath(this.config.appPath)
       this.routeRegister.setViewAppDirName(this.config.viewAppDirName)
-      this.routeFinder = new RouteFinder(this.config.appPath, this.config.monoApplication)
+
+      this.applicationMap = new ApplicationMap(this.config.appPath, this.config.monoApplication)
     }
 
     public registerRoutes (): void {
       this.routeRegister.setApp(this.application.getApp())
-      this.routeRegister.setRoutesRegistered(this.routeFinder.find())
+      this.routeRegister.setMappedApp(this.applicationMap.mapApplication())
 
-      this.routeRegister.registerGlobalMiddlewaresBefore()
+      // @todo remover console log
+      // console.log(util.inspect(this.applicationMap.mapApplication(), { showHidden: false, depth: null, colors: true }))
       this.routeRegister.register()
     }
 
@@ -85,13 +87,13 @@ class Bootstrap {
       return this.application.getApp().listen(port, closure)
     }
 
-    private handleError404 () {
+    private handleError404 (): void {
       this.application.getApp().use(Error404.index)
     }
 }
 
 class JSagon {
-  public static create (configApp, viewEngineFactory?: ViewEngineInterface) {
+  public static create (configApp, viewEngineFactory?: ViewEngineInterface): Bootstrap {
     return new Bootstrap(configApp, viewEngineFactory)
   }
 }

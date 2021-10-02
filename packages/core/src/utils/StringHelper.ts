@@ -1,5 +1,5 @@
 export class StringHelper {
-  public static camelCaseToDash (str) {
+  public static camelCaseToDash (str: string): string {
     return str
       .replace(/[^a-zA-Z0-9/\\]+/g, '-')
       .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')

@@ -34,3 +34,8 @@ export const configDefault = (rootPath: string) => {
     viewAppDirName: 'app'
   }
 }
+
+export const MODULES_FOLDER_NAME = 'modules'
+export const CONFIG_MODULE_FILE_NAME = 'Config/Module'
+export const CONFIG_ROUTE_FILE_NAME = 'Config/Routes'
+export const CONFIG_APP_FILE_NAME = 'app.config'

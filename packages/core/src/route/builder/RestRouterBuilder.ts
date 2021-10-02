@@ -1,31 +1,30 @@
+import { HTTPMethod } from '../../utils'
+import { Actions } from './RouteLib'
 import RouterBuilder from './RouterBuilder'
 
 class RestRouterBuilder extends RouterBuilder {
   protected rest = true
 
-  public allDefaults () {
+  public allDefaults (): RouterBuilder {
     return this.store().patch().del().show().edit().index()
   }
 
-  protected getDefaultAction (action: string) {
+  protected getDefaultAction (action: string): string {
     switch (action) {
-      // case 'get': return 'index'
-      case 'post': return ''
-      case 'patch':
-      case 'put': return 'update'
+      case HTTPMethod.Post: return ''
+      case HTTPMethod.Path:
+      case HTTPMethod.Put: return 'update'
       default: return action
     }
   }
 
   protected getDefaultUri (action: string): string {
-    // get /products get /products/:id post /products patch /products/:id del /products/:id
-
     switch (action) {
-      case 'put':
-      case 'patch': return '/:id'
-      case 'delete': return '/:id'
-      case 'show': return '/:id'
-      case 'edit': return '/:id/edit'
+      case HTTPMethod.Put:
+      case HTTPMethod.Path: return '/:id'
+      case HTTPMethod.Delete: return '/:id'
+      case Actions.Show: return '/:id'
+      case Actions.Edit: return '/:id/edit'
       default: return ''
     }
   }

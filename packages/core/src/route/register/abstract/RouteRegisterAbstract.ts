@@ -1,11 +1,14 @@
-import path from 'path'
+import pathTool from 'path'
 import ErrorRequest from '../../../error/ErrorRequest'
 import RouterBuilder from '../../builder/RouterBuilder'
 import IRouter from '../interface/IRouter'
 import { IKernelMiddleware } from '../../../config/KernelConfigInterface'
-import { AbstractController } from '../../../controller'
+import { ControllerBase } from '../../../controller'
 import { StringHelper } from '../../../utils'
 import { Application, Request, Response } from '../../../application'
+import { MappedApp } from '../../../application/ApplicationMap'
+import { ControllerMetadataReflection } from '../../../controller/decorator/ControllerMetadataReflection'
+import { ControllerType, MiddlewareType } from '../../builder/RouteLib'
 
 abstract class RouteRegisterAbstract {
     protected app: Application
@@ -13,39 +16,37 @@ abstract class RouteRegisterAbstract {
     protected errorRequest: ErrorRequest
 
     protected routeBuilders: Array<RouterBuilder> = []
-    protected routesMapped: Array<any> = []
     protected router: IRouter
-    protected middlewares: IKernelMiddleware
+    protected globalMiddlewares: IKernelMiddleware
 
     protected appPath: string
     protected viewAppDirName: string
+    protected appMapped: MappedApp[]
 
-    /**
-     * @deprecated
-     * @param router
-     */
-    public setRouter (router: IRouter) {
+    private currentAppMiddlewaresRegistered: {}
+
+    public setRouter (router: IRouter): void {
       this.router = router
     }
 
-    public setApp (app) {
+    public setApp (app): void {
       this.app = app
     }
 
-    public setRouteBuilders (routeBuilders: Array<RouterBuilder>) {
+    public setMappedApp (mappedApp: MappedApp[]): void {
+      this.appMapped = mappedApp
+    }
+
+    public setRouteBuilders (routeBuilders: Array<RouterBuilder>): void {
       this.routeBuilders = routeBuilders
     }
 
-    public setGlobalMiddlewares (middlewares: IKernelMiddleware) {
-      this.middlewares = middlewares
+    public setGlobalMiddlewares (middlewares: IKernelMiddleware): void {
+      this.globalMiddlewares = middlewares
     }
 
-    public setRoutesRegistered (routes: Array<any>) {
-      this.routesMapped = routes
-    }
-
-    public setAppPath (f: string): void {
-      this.appPath = f
+    public setAppPath (path: string): void {
+      this.appPath = path
     }
 
     public setViewAppDirName (f: string): void {
@@ -56,39 +57,95 @@ abstract class RouteRegisterAbstract {
       this.errorRequest = errorRequest
     }
 
-    public registerGlobalMiddlewaresBefore (): void {
-      if (!this.middlewares?.before) return
+    public register (): void {
+      const { registered: middlewaresGlobalRegistered } = this.globalMiddlewares
 
-      this.middlewares.before.forEach(mid => {
-        this.addMiddleware(mid)
+      this.appMapped.forEach(currentApp => {
+        const { registered: middlewaresAppRegistered } = currentApp.httpKernel?.middlewares || {}
+        this.currentAppMiddlewaresRegistered = Object.assign(middlewaresGlobalRegistered || {}, middlewaresAppRegistered || {})
+
+        this.registerByRoutes(currentApp)
+        this.registerByDecorator(currentApp)
       })
     }
 
-    public registerGlobalMiddlewaresAfter (): void {
-      if (!this.middlewares?.after) return
+    private registerByRoutes (currentApp: MappedApp): void {
+      const { uri: uriApp, httpKernel, layout, routes } = currentApp
+      const { before: middlewaresBefore, after: middlewaresAfter } = httpKernel?.middlewares || {}
 
-      this.middlewares.after.forEach((mid) => {
-        this.addMiddleware(mid)
-      })
-    }
+      let actionController: Function
+      let modulePath: string
+      let rest: boolean
 
-    public register () {
-      // Routes mapped
-      this.routesMapped.forEach(routeMapped => {
-        const localMiddlewares = routeMapped.httpKernel?.middlewares
+      routes.forEach((routeBuilder: RouterBuilder) => {
+        modulePath = routeBuilder.getModulePath()
+        rest = routeBuilder.isRest()
 
-        routeMapped.routeBuilders.forEach((routeBuilder: RouterBuilder) => {
-          const modulePath = routeBuilder.getModulePath()
-          const rest = routeBuilder.isRest()
+        routeBuilder.getRoutes().forEach(route => {
+          const { Controller, action } = route
+          actionController = this.mountRequestAction({ Controller, action }, middlewaresAfter, rest, layout, modulePath)
 
-          routeBuilder.getRoutes().forEach(route => {
-            route.action = this.mountRequestAction(route, localMiddlewares?.after, rest, routeMapped.layout, modulePath)
-            route.uri = routeMapped.uriApp + route.uri
-
-            this.registerRoute(route, localMiddlewares?.before)
+          this.registerRoute({
+            httpMethod: route.typeRequest,
+            uri: uriApp + route.uri,
+            middlewares: this.getMiddlewaresAction(middlewaresBefore, route.middlewares, route.skipMiddlewares),
+            action: actionController
           })
         })
       })
+    }
+
+    private registerByDecorator (currentApp: MappedApp): void {
+      const { uri: uriApp, httpKernel, layout, modules } = currentApp
+      const { before: middlewaresBefore, after: middlewaresAfter } = httpKernel?.middlewares || {}
+
+      let modulePathFull: string
+      modules.forEach(({ module, path }) => {
+        modulePathFull = pathTool.join(this.appPath, path)
+
+        module.controllers.forEach(controller => {
+          const metadata = ControllerMetadataReflection.getMetadataRoute(controller.prototype)
+
+          const { actions, uriBase: uriController } = metadata
+
+          Object.keys(actions).forEach(actionName => {
+            const { httpMethod, uri: uriAction, middlewares, skipMiddlewares, view } = actions[actionName]
+            const { view: viewName, fullPath: viewFullPath } = view || {}
+            const action = this.mountRequestAction({ Controller: controller, action: actionName, viewName, viewFullPath }, middlewaresAfter, false, layout, modulePathFull)
+
+            this.registerRoute({
+              httpMethod,
+              uri: uriApp + uriController + uriAction,
+              middlewares: this.getMiddlewaresAction(middlewaresBefore, middlewares, skipMiddlewares),
+              action
+            })
+          })
+        })
+      })
+    }
+
+    private getMiddlewaresAction (middlewaresApp: MiddlewareType[], middlewaresAction: MiddlewareType[], skipMiddlewares: string[]): Function[] {
+      const { before: middlewaresGlobal } = this.globalMiddlewares
+      const middlewaresListed = [...(middlewaresGlobal || []), ...(middlewaresAction || []), ...(middlewaresApp || [])]
+
+      if (!middlewaresListed || middlewaresListed.length <= 0) return []
+
+      const middlewares: Function[] = []
+      let handle: Function
+
+      middlewaresListed.forEach(middleware => {
+        if (typeof middleware !== 'string') return middlewares.push(middleware)
+        if (this.mustSkipMiddleware(middleware, skipMiddlewares)) return
+
+        handle = this.currentAppMiddlewaresRegistered[middleware]
+        if (handle) middlewares.push(handle)
+      })
+
+      return middlewares
+    }
+
+    private mustSkipMiddleware (middlewareAlias: string, skipMiddlewares: string[] = []): boolean {
+      return skipMiddlewares.some(alias => alias === middlewareAlias)
     }
 
     /**
@@ -100,13 +157,14 @@ abstract class RouteRegisterAbstract {
      * @param modulePath
      * @returns
      */
-    protected mountRequestAction ({ Controller, action }, localMiddlewareAfter, rest, layout?: string, modulePath?: string) {
+    protected mountRequestAction ({ Controller, action, viewName, viewFullPath }: {Controller: ControllerType, action: string, viewName?: string|null, viewFullPath?: boolean|null}, localMiddlewareAfter, rest, layout?: string, modulePath?: string) {
       let viewPath = null
-      if (!rest) viewPath = this.generateViewPath(Controller, action, modulePath)
+
+      if (!rest) viewPath = this.generateViewPath(Controller, action, modulePath, viewName, viewFullPath)
 
       return async (req: Request, res: Response, next) => {
         try {
-          const controllerInstance = (new Controller()) as AbstractController
+          const controllerInstance = (new Controller()) as ControllerBase
 
           // Check if the controller has the action method
           if (!controllerInstance[action]) throw new Error(`Method not found: ${action}`)
@@ -136,18 +194,18 @@ abstract class RouteRegisterAbstract {
      * @returns
      */
     private async executeMiddlewareAfter (params, localMiddlewareAfter): Promise<void> {
-      if (localMiddlewareAfter) {
-        localMiddlewareAfter.forEach((mid) => mid(...params))
-      }
+      const middlewares = [...(this.globalMiddlewares?.after || []), ...(localMiddlewareAfter || [])]
+      let handle: Function
 
-      if (!this.middlewares?.after) return
+      middlewares.forEach(middleware => {
+        if (typeof middleware !== 'string') return middleware(...params)
 
-      this.middlewares.after.forEach((mid) => {
-        mid(...params)
+        handle = this.currentAppMiddlewaresRegistered[middleware]
+        if (handle) handle(...params)
       })
     }
 
-    protected abstract registerRoute (route, localMiddlewares): void
+    protected abstract registerRoute (route): void
 
     protected abstract addMiddleware (middleware): void
 
@@ -159,14 +217,15 @@ abstract class RouteRegisterAbstract {
      * @param modulePath
      * @returns
      */
-    private generateViewPath (Controller, action: string, modulePath: string): string {
-      let viewDir = this.viewAppDirName + path.sep
+    private generateViewPath (Controller, action: string, modulePath: string, viewName?: string, viewFullPath?: boolean): string {
+      let viewDir = this.viewAppDirName + pathTool.sep
+      if (viewFullPath) return viewDir + viewName
 
       if (modulePath) {
-        const newDir = modulePath.replace(this.appPath + path.sep, '')
-        viewDir += newDir.replace(/modules(\\|\/)/g, '') + path.sep
+        const newDir = modulePath.replace(this.appPath + pathTool.sep, '')
+        viewDir += newDir.replace(/modules(\\|\/)/g, '') + pathTool.sep
       }
-      viewDir += Controller.name.replace(/Controller/g, '') + path.sep + action
+      viewDir += Controller.name.replace(/Controller/g, '') + pathTool.sep + (viewName || action)
 
       return StringHelper.camelCaseToDash(viewDir)
     }

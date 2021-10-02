@@ -6,7 +6,7 @@ class RouteRegisterFactory {
     return new (require(pathEngine))()
   }
 
-  public static exists (engine: string) {
+  public static exists (engine: string): string {
     const pathEngine = '../../platform-adapters/' + engine + '/route/register/ExpressRouteRegister'
 
     try {

@@ -1,4 +1,5 @@
-import { AbstractController } from './AbstractController'
-import { AbstractRestController } from './AbstractRestController'
+import { ControllerBase } from './ControllerBase'
+import { RestControllerBase } from './RestControllerBase'
+export { ControllerBase, RestControllerBase }
 
-export { AbstractController, AbstractRestController }
+export * from './decorator/Decorators'

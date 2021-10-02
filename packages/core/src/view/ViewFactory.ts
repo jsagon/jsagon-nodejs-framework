@@ -1,10 +1,10 @@
 class ViewFactory {
-  public static get (serverEngine: string, engine: string) {
+  public static get (serverEngine: string, engine: string): any {
     const pathEngine = this.exists(serverEngine, engine)
     return new (require(pathEngine))()
   }
 
-  public static exists (serverEngine, engine) {
+  public static exists (serverEngine: string, engine: string): string {
     const pathEngine = `../platform-adapters/${serverEngine}/view/view-adapters/${engine}/ViewEngine`
 
     try {

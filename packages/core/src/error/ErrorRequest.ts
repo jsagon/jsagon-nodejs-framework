@@ -1,5 +1,7 @@
+import { Request, Response } from '../application/server/Interface/IApplication'
+
 class ErrorRequest {
-  handle (isRest, request, response, error) {
+  handle (isRest: boolean, request: Request, response: Response, error) {
     response.status(500)
     if (isRest || /application\/json/.test(response.get('accept'))) {
       return response.send({ error: error.message, stack: error.stack })
