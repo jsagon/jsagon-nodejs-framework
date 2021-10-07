@@ -12,7 +12,7 @@ class RestRouterBuilder extends RouterBuilder {
   protected getDefaultAction (action: string): string {
     switch (action) {
       case HTTPMethod.Post: return ''
-      case HTTPMethod.Path:
+      case HTTPMethod.Patch:
       case HTTPMethod.Put: return 'update'
       default: return action
     }
@@ -21,7 +21,7 @@ class RestRouterBuilder extends RouterBuilder {
   protected getDefaultUri (action: string): string {
     switch (action) {
       case HTTPMethod.Put:
-      case HTTPMethod.Path: return '/:id'
+      case HTTPMethod.Patch: return '/:id'
       case HTTPMethod.Delete: return '/:id'
       case Actions.Show: return '/:id'
       case Actions.Edit: return '/:id/edit'

@@ -6,7 +6,7 @@ export const Get = RouteBinder(HTTPMethod.Get)
 export const Post = RouteBinder(HTTPMethod.Post)
 export const Delete = RouteBinder(HTTPMethod.Delete)
 export const Put = RouteBinder(HTTPMethod.Put)
-export const Path = RouteBinder(HTTPMethod.Path)
+export const Patch = RouteBinder(HTTPMethod.Patch)
 
 export const Controller = (uri: string = ''): Function => {
   return (target: Function): void => {

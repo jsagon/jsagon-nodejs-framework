@@ -3,5 +3,5 @@ export enum HTTPMethod {
     Post = 'post',
     Delete = 'delete',
     Put = 'put',
-    Path = 'path'
+    Patch = 'patch'
 }

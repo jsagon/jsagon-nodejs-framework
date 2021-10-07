@@ -109,7 +109,7 @@ class RouterBuilder {
     }
 
     public patch (params: ParamRouteBuilder = {}): RouterBuilder {
-      this.registerRoute(HTTPMethod.Path, params)
+      this.registerRoute(HTTPMethod.Patch, params)
       return this
     }
 
@@ -169,7 +169,7 @@ class RouterBuilder {
       switch (action) {
         case HTTPMethod.Get: return Actions.Index
         case HTTPMethod.Post: return ''
-        case HTTPMethod.Path:
+        case HTTPMethod.Patch:
         case HTTPMethod.Put: return Actions.Update
         default: return action
       }
@@ -185,7 +185,7 @@ class RouterBuilder {
         case Actions.Store:
         case HTTPMethod.Post: return '/store'
         case HTTPMethod.Put:
-        case HTTPMethod.Path: return '/update/:id'
+        case HTTPMethod.Patch: return '/update/:id'
         case HTTPMethod.Delete: return '/delete/:id'
         case Actions.Detail: return '/detail/:id'
         case Actions.Show: return '/show/:id'
